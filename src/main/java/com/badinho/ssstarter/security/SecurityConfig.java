@@ -13,6 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
+import static com.badinho.ssstarter.security.ApplicationUserRole.*;
+
 @Configuration
 @EnableWebSecurity
 @AllArgsConstructor
@@ -26,7 +28,10 @@ public class SecurityConfig {
                 .authorizeRequests((auth) -> auth
                         .antMatchers("/", "index", "/css/*", "/js/*")
                         .permitAll()
-                        .anyRequest().authenticated()
+                        .antMatchers("/api/**")
+                        .hasRole(USER.name())
+                        .anyRequest()
+                        .authenticated()
                 )
                 .httpBasic(Customizer.withDefaults());
 
@@ -35,12 +40,20 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        UserDetails applicationUser = User.builder()
+        UserDetails badinho = User.builder()
                 .username("badinho")
-                .password(passwordEncoder.encode("password"))
-                .roles("USER") // ROLE_USER
+                .password(passwordEncoder.encode("badinho"))
+                .roles(USER.name()) // ROLE_USER
+                .build();
+        UserDetails peralitos = User.builder()
+                .username("peralitos")
+                .password(passwordEncoder.encode("peralitos"))
+                .roles(ADMIN.name())
                 .build();
 
-        return new InMemoryUserDetailsManager(applicationUser);
+        return new InMemoryUserDetailsManager(
+                badinho,
+                peralitos
+        );
     }
 }
