@@ -3,8 +3,8 @@ package com.badinho.ssstarter.security;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-@Getter
 @AllArgsConstructor
+@Getter
 public enum ApplicationUserPermission {
     USER_READ("user:read"),
     USER_WRITE("user:write");

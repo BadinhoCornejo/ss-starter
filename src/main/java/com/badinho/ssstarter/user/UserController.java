@@ -1,9 +1,7 @@
 package com.badinho.ssstarter.user;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,10 +25,13 @@ public class UserController {
                     .build()
     );
 
-    @GetMapping(path = "/{userId}")
+    @GetMapping(path = "{userId}")
     public User getUser(@PathVariable("userId") Integer userId) {
-        return USERS.stream().filter(user -> userId.equals(user.getUserId()))
+        return USERS.stream()
+                .filter(user -> userId.equals(user.getUserId()))
                 .findFirst()
-                .orElseThrow(() -> new IllegalStateException("User " + userId + " does not exists"));
+                .orElseThrow(() -> new IllegalStateException(
+                        "User " + userId + " does not exists"
+                ));
     }
 }
