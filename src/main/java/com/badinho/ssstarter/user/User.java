@@ -1,7 +1,9 @@
 package com.badinho.ssstarter.user;
 
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 
 @AllArgsConstructor
 @Getter

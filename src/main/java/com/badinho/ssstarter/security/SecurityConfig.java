@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 import static com.badinho.ssstarter.security.ApplicationUserRole.ADMIN;
 import static com.badinho.ssstarter.security.ApplicationUserRole.USER;
@@ -27,14 +28,11 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf()
-                .disable()
+                .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .and()
                 .authorizeRequests((auth) -> auth
-                        .antMatchers("/", "index", "/css/*", "/js/*")
-                        .permitAll()
+                        .antMatchers("/", "index", "/css/*", "/js/*").permitAll()
                         .antMatchers("/api/**").hasRole(USER.name())
-//                        .antMatchers(HttpMethod.DELETE,"/admin/api/**")
-//                        .hasAuthority(ApplicationUserPermission.USER_WRITE.getPermission())
                         .anyRequest()
                         .authenticated()
                 )
