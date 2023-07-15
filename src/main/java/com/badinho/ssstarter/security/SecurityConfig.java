@@ -1,6 +1,7 @@
 package com.badinho.ssstarter.security;
 
 import com.badinho.ssstarter.auth.ApplicationUserService;
+import com.badinho.ssstarter.jwt.JwtUsernameAndPasswordAuthenticationFilter;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,6 +12,8 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -30,43 +33,28 @@ import static com.badinho.ssstarter.security.ApplicationUserRole.USER;
 @EnableWebSecurity
 @AllArgsConstructor
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public class SecurityConfig {
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final PasswordEncoder passwordEncoder;
     private final ApplicationUserService applicationUserService;
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
         http
                 .csrf().disable()
-                .authorizeHttpRequests(auth -> auth
-                        .antMatchers("/", "index", "/css/*", "/js/*").permitAll()
-                        .antMatchers("/api/**").hasRole(USER.name())
-                        .anyRequest()
-                        .authenticated()
-                )
-                .formLogin(formLogin -> formLogin
-                        .loginPage("/login").permitAll()
-                        .defaultSuccessUrl("/users", true)
-                )
-                .rememberMe(rememberMe -> rememberMe
-                        .tokenValiditySeconds((int) TimeUnit.DAYS.toSeconds(21))
-                        .key("peralitos")
-                        .rememberMeParameter("remember-me")
-                )
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        // Only for csrf disabled // https://docs.spring.io/spring-security/site/docs/4.2.12.RELEASE/apidocs/org/springframework/security/config/annotation/web/configurers/LogoutConfigurer.html
-                        .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET"))
-                        .clearAuthentication(true)
-                        .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID", "remember-me")
-                        .logoutSuccessUrl("/login")
-                )
-                .authenticationProvider(daoAuthenticationProvider());
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .addFilter(new JwtUsernameAndPasswordAuthenticationFilter(authenticationManager()))
+                .authorizeRequests()
+                .antMatchers("/", "index", "/css/*", "/js/*").permitAll()
+                .antMatchers("/api/**").hasRole(USER.name())
+                .anyRequest()
+                .authenticated();
+    }
 
-
-        return http.build();
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.authenticationProvider(daoAuthenticationProvider());
     }
 
     @Bean
